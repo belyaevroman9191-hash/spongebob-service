@@ -21,6 +21,45 @@ async function init(q) {
  await q.query("INSERT INTO site_settings(id,data) VALUES(1,$1::jsonb) ON CONFLICT(id) DO NOTHING",[JSON.stringify(defaults)]);
 }
 function cookie(req,n){const s=(req.headers.cookie||"").split(";").map(x=>x.trim()).find(x=>x.startsWith(n+"="));return s?decodeURIComponent(s.slice(n.length+1)):null}
+function detectDevice(ua=""){
+ const s=String(ua).toLowerCase();
+ if(/ipad|tablet|playbook|silk/.test(s)||(/android/.test(s)&&!/mobile/.test(s)))return "tablet";
+ if(/mobi|iphone|ipod|android.*mobile|windows phone/.test(s))return "mobile";
+ if(!s)return "other";
+ return "desktop";
+}
+function cleanSource(value){
+ const s=String(value||"").trim().toLowerCase().slice(0,100);
+ if(!s)return null;
+ if(/^(telegram|tg|telegram\.org|t\.me)$/.test(s))return "Telegram";
+ if(/^(instagram|ig)$/.test(s))return "Instagram";
+ if(/^(tiktok|tt)$/.test(s))return "TikTok";
+ if(/^(youtube|youtu\.be|yt)$/.test(s))return "YouTube";
+ if(/^(google|bing|yandex|duckduckgo)$/.test(s))return "Поиск: "+s;
+ return s.replace(/[^a-z0-9а-яё _.-]/gi,"").slice(0,80)||null;
+}
+function sourceFromRequest(req,b){
+ const explicit=cleanSource(b.source||b.utmSource);
+ if(explicit)return explicit;
+ try{
+  const u=new URL(String(b.pageUrl||b.url||req.headers.referer||""),"https://site.invalid");
+  const tagged=cleanSource(u.searchParams.get("source")||u.searchParams.get("utm_source"));
+  if(tagged)return tagged;
+ }catch{}
+ const ref=String(req.headers.referer||"");
+ try{
+  const host=new URL(ref).hostname.toLowerCase();
+  if(host==="t.me"||host.endsWith(".telegram.org")||host==="telegram.org"||host==="web.telegram.org")return "Telegram";
+  if(host==="instagram.com"||host.endsWith(".instagram.com"))return "Instagram";
+  if(host==="tiktok.com"||host.endsWith(".tiktok.com"))return "TikTok";
+  if(host==="youtube.com"||host==="youtu.be"||host.endsWith(".youtube.com"))return "YouTube";
+  if(host==="google.com"||host.endsWith(".google.com"))return "Поиск: Google";
+  if(host==="bing.com"||host.endsWith(".bing.com"))return "Поиск: Bing";
+  if(host==="yandex.ru"||host.endsWith(".yandex.ru")||host==="yandex.com")return "Поиск: Yandex";
+  if(host!=="site.invalid")return host;
+ }catch{}
+ return "Прямой переход / источник не передан";
+}
 function out(res,status,obj,headers={}){res.setHeader("Cache-Control","no-store");Object.entries(headers).forEach(([k,v])=>res.setHeader(k,v));res.status(status).json(obj)}
 module.exports = async (req,res)=>{
  try {
@@ -54,7 +93,12 @@ module.exports = async (req,res)=>{
    const now=Date.now(), since=n=>ev.filter(e=>Date.parse(e.ts)>=now-n);
    const stats={views:pages.length,unique:vs.length,todayViews:since(86400000).filter(e=>e.type==="page_view").length,weekViews:since(604800000).filter(e=>e.type==="page_view").length,monthViews:since(2592000000).filter(e=>e.type==="page_view").length,unique24h:new Set(since(86400000).filter(e=>e.type==="page_view").map(e=>e.visitorId)).size,unique7d:new Set(since(604800000).filter(e=>e.type==="page_view").map(e=>e.visitorId)).size,unique30d:new Set(since(2592000000).filter(e=>e.type==="page_view").map(e=>e.visitorId)).size,clicks,clicksCount:clicks.length,todayClicks:since(86400000).filter(e=>e.type==="link_click").length,clickRate:pages.length?Number((clicks.length/pages.length*100).toFixed(1)):0,byLink,topLinks:Object.entries(byLink).map(([id,count])=>({id,count,title:cfg.links.find(x=>x.id===id)?.title||id})).sort((a,b)=>b.count-a.count).slice(0,10),telegramVisitors:vs.filter(v=>v.telegramUsername).length,telegramViews:pages.filter(e=>e.telegramUsername).length,days:{},hours24:Array.from({length:24},(_,hour)=>({hour,views:0})),sources:{},devices:{mobile:0,desktop:0,tablet:0,other:0},live:vs.filter(v=>now-Date.parse(v.lastSeen)<120000).length};
    pages.forEach(e=>stats.days[e.ts.slice(0,10)]=(stats.days[e.ts.slice(0,10)]||0)+1);
-   vs.forEach(v=>{let s=v.referrer||"direct / Telegram";stats.sources[s]=(stats.sources[s]||0)+1;});
+   vs.forEach(v=>{
+    const d=v.device||detectDevice(v.userAgent||"");
+    stats.devices[d]=(stats.devices[d]||0)+1;
+    const s=v.source||((v.referrer&&v.referrer!=="")?v.referrer:"Прямой переход / источник не передан");
+    stats.sources[s]=(stats.sources[s]||0)+1;
+   });
    if(req.method==="GET"&&path==="/api/admin/me")return out(res,200,{ok:true,user:{username:"admin",role:"admin",name:"Administrator"},settings:cfg,stats});
    if(req.method==="GET"&&path==="/api/admin/analytics")return out(res,200,{stats,events:ev.slice(0,500),visitors:vs.sort((a,b)=>Date.parse(b.lastSeen)-Date.parse(a.lastSeen)).slice(0,500)});
    if(req.method==="GET"&&path==="/api/admin/export")return out(res,200,{exportedAt:new Date().toISOString(),settings:cfg,visitors:Object.fromEntries(vs.map(v=>[v.id,v])),events:ev});
@@ -70,10 +114,17 @@ module.exports = async (req,res)=>{
   if(req.method==="POST"&&path==="/api/event"){
    const vid=cookie(req,"visitor_id")||token(), ts=new Date().toISOString(), type=String(b.type||"event");
    const r=await q.query("SELECT data FROM visitors WHERE id=$1",[vid]);
-   const v=r.rows[0]?.data||{id:vid,firstSeen:ts,lastSeen:ts,visits:0,events:0,telegramUsername:null,telegramName:null,referrer:null,userAgent:null,ipHash:null};
-   v.lastSeen=ts;v.visits+=type==="page_view"?1:0;v.events++;v.referrer=v.referrer||req.headers.referer||null;v.userAgent=req.headers["user-agent"]||v.userAgent;
+   const ua=req.headers["user-agent"]||"";
+   const source=sourceFromRequest(req,b);
+   const v=r.rows[0]?.data||{id:vid,firstSeen:ts,lastSeen:ts,visits:0,events:0,telegramUsername:null,telegramName:null,referrer:null,userAgent:null,ipHash:null,source:null,device:null,landingPage:null};
+   v.lastSeen=ts;v.visits+=type==="page_view"?1:0;v.events++;
+   v.referrer=v.referrer||req.headers.referer||null;
+   v.userAgent=ua||v.userAgent;
+   v.device=detectDevice(ua||v.userAgent||"");
+   v.source=v.source||source;
+   if(type==="page_view"&&!v.landingPage)v.landingPage=String(b.pageUrl||b.path||"/").slice(0,500);
    if(b.telegramUsername)v.telegramUsername=String(b.telegramUsername).replace(/^@/,"").slice(0,64);if(b.telegramName)v.telegramName=String(b.telegramName).slice(0,120);
-   const e={id:token(),ts,visitorId:vid,...b,type};
+   const e={id:token(),ts,visitorId:vid,...b,source:v.source,device:v.device,type};
    await q.query("INSERT INTO visitors(id,data) VALUES($1,$2::jsonb) ON CONFLICT(id) DO UPDATE SET data=EXCLUDED.data",[vid,JSON.stringify(v)]);
    await q.query("INSERT INTO events(id,ts,data) VALUES($1,$2,$3::jsonb)",[e.id,ts,JSON.stringify(e)]);
    return out(res,200,{ok:true},{"Set-Cookie":`visitor_id=${vid}; Max-Age=31536000; Path=/; SameSite=Lax`});
