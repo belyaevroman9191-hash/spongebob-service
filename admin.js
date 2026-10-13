@@ -144,7 +144,7 @@
         </div>
         <div class="panel" style="margin-top:12px"><h2>ПОСЛЕДНИЕ ВИЗИТЫ</h2><div class="scroll"><table><thead><tr><th>Время</th><th>Telegram</th><th>Визит</th><th>Источник</th><th>Устройство</th></tr></thead><tbody id="recent"></tbody></table></div></div>
       </section>
-      <section class="section" id="vis"><div class="panel"><h2>ПОСЕТИТЕЛИ / TELEGRAM</h2><div class="scroll"><table><thead><tr><th>Последний визит</th><th>Telegram</th><th>Имя</th><th>Визиты</th><th>Источник</th></tr></thead><tbody id="visitors"></tbody></table></div></div></section>
+      <section class="section" id="vis"><div class="panel"><h2>ПОСЕТИТЕЛИ / TELEGRAM</h2><div class="scroll"><table><thead><tr><th>Последний визит</th><th>Telegram</th><th>Имя</th><th>Устройство</th><th>Визиты</th><th>Источник</th></tr></thead><tbody id="visitors"></tbody></table></div></div></section>
       <section class="section" id="events"><div class="panel"><h2>ЛОГ АКТИВНОСТИ</h2><div class="scroll"><table><thead><tr><th>Время</th><th>Тип</th><th>Раздел</th><th>Telegram</th><th>Посетитель</th></tr></thead><tbody id="events"></tbody></table></div></div></section>
       <section class="section" id="settings">
         <div class="panel">
@@ -214,7 +214,7 @@
       byId('chart').innerHTML = days.length ? days.map(([d, n]) => `<div class="bar" style="height:${Math.max(4, n / max * 190)}px"><span>${n}</span></div>`).join('') : '<div class="muted">Пока нет посещений</div>';
       byId('channels').innerHTML = data.settings.links.length ? data.settings.links.map(l => `<div style="padding:11px 0;border-bottom:1px solid #172017"><b>${esc(l.title)}</b><div class="muted">${s.byLink[l.id] || 0} кликов</div></div>`).join('') : '<div class="muted">Разделов пока нет</div>';
       byId('recent').innerHTML = j.events.filter(e => e.type === 'page_view').slice(0, 60).map(e => rowVisit(e, j.visitors)).join('');
-      byId('visitors').innerHTML = j.visitors.map(v => `<tr><td>${fmt(v.lastSeen)}</td><td>${v.telegramUsername ? '@' + esc(v.telegramUsername) : '<span class="muted">не определён</span>'}</td><td>${esc(v.telegramName || '—')}</td><td>${v.visits}</td><td>${esc(v.referrer || 'direct / Telegram')}</td></tr>`).join('');
+      byId('visitors').innerHTML = j.visitors.map(v => `<tr><td>${fmt(v.lastSeen)}</td><td>${v.telegramUsername ? '@' + esc(v.telegramUsername) : '<span class="muted">не определён</span>'}</td><td>${esc(v.telegramName || '—')}</td><td>${({mobile:'📱 Телефон',desktop:'🖥️ ПК',tablet:'📟 Планшет',other:'❔ Другое'})[v.device || 'other']}</td><td>${v.visits}</td><td>${esc(v.source || v.referrer || 'Прямой переход / источник не передан')}</td></tr>`).join('');
       byId('events').innerHTML = j.events.slice(0, 200).map(e => `<tr><td>${fmt(e.ts)}</td><td><span class="pill">${esc(e.type)}</span></td><td>${esc(e.title || e.path || e.linkId || '—')}</td><td>${e.telegramUsername ? '@' + esc(e.telegramUsername) : '—'}</td><td>${String(e.visitorId || '').slice(0, 10)}…</td></tr>`).join('');
       renderSettings();
     } catch (e) { console.error(e); }
