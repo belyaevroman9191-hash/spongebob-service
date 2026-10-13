@@ -7,18 +7,17 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const byId = id => document.getElementById(id);
   
-  // Автономная база данных в браузере, чтобы админка работала на Vercel без серверных ошибок
+  // Эмуляция серверной базы данных в localStorage для Vercel
   const mockApi = async (path, opt = {}) => {
     if (path === '/api/admin/me') {
       if (localStorage.getItem('sb_admin_session') !== 'active') {
         throw new Error('UNAUTHORIZED');
       }
       
-      // Инициализируем настройки, если их еще нет в локальной памяти
       if (!localStorage.getItem('sb_settings')) {
         const defaultSettings = {
           siteName: 'SPONGEBOB SERVICE',
-          telegramBotUsername: 'SpongeBob_Bot',
+          telegramBotUsername: 'SpongeBot_Robot',
           links: [
             { id: '01', title: 'ГЛАВНЫЙ АДМИНИСТРАТОР', subtitle: 'Основной контакт проекта', icon: 'A', url: 'https://t.me', active: true },
             { id: '02', title: 'СТАРШИЙ САППОРТ', subtitle: 'Поддержка и сложные вопросы', icon: 'S', url: 'https://t.me', active: true },
@@ -34,11 +33,14 @@
       return {
         user: { username: 'admin', role: 'admin', name: 'Administrator' },
         settings: savedSettings,
-        visitors: {
-          "v1": { id: "v1", firstSeen: "2026-10-12T14:22:00Z", lastSeen: "2026-10-13T08:11:00Z", visits: 12, events: 45, telegramUsername: "GSMSHEIKHO9", telegramName: "Sheikh", referrer: "Telegram", userAgent: "Mozilla/Mobile" }
-        },
+        visitors: [
+          { lastSeen: "Только что", telegramUsername: "user_phone", telegramName: "Иван (Моб)", visits: 14, referrer: "Telegram", device: "mobile" },
+          { lastSeen: "5 мин. назад", telegramUsername: "user_desktop", telegramName: "Алексей (ПК)", visits: 8, referrer: "Прямой", device: "desktop" },
+          { lastSeen: "1 час назад", telegramUsername: "user_tablet", telegramName: "Мария (Планшет)", visits: 3, referrer: "Реклама", device: "tablet" }
+        ],
         events: [
-          { id: "e1", ts: new Date().toISOString(), visitorId: "v1", type: "page_view" }
+          { ts: "Только что", type: "click", detail: "Клик по ссылке Саппорта", user: "@user_phone" },
+          { ts: "2 мин. назад", type: "page_view", detail: "Вход на главную", user: "@user_desktop" }
         ]
       };
     }
@@ -126,18 +128,6 @@
   function render() {
     document.body.classList.toggle('admin-authenticated', true);
     
-    let linksHtml = '';
-    data.settings.links.forEach(l => {
-      linksHtml += '<div style="padding: 15px; margin-bottom: 10px; background: #111; border: 1px solid #222; border-radius: 4px; border-left: 4px solid #ffeb3b;">' +
-        '<span style="background: #ffeb3b; color: #000; padding: 2px 6px; font-weight: bold; margin-right: 10px; border-radius: 2px;">' + esc(l.icon) + '</span>' +
-        '<b style="font-size: 16px; color: #fff;">' + esc(l.title) + '</b>' + 
-        '<span style="color: #888; margin-left: 5px;">— ' + esc(l.subtitle) + '</span>' +
-        '<div style="margin-top: 8px;">' +
-          '<a href="' + esc(l.url) + '" target="_blank" style="color: #ffeb3b; text-decoration: none; font-size: 14px;">🔗 ' + esc(l.url) + '</a>' +
-        '</div>' +
-      '</div>';
-    });
-
     app.innerHTML = '<div class="shell">' +
       '<header class="top">' +
         '<div>' +
@@ -158,63 +148,80 @@
         '<button class="tab" data-tab="settings">НАСТРОЙКИ</button>' +
       '</div>' +
       
+      // Раздел 1: ДЭШБОРД (Аналитика по устройствам ПК / Смартфоны / Таблеты)
       '<section class="section active" id="dash-sec">' +
         '<div class="grid">' +
-          '<div class="stat"><div class="l">ПРОСМОТРЫ (ВСЕГО)</div><div class="n">1,248</div></div>' +
-          '<div class="stat"><div class="l">УНИКАЛЬНЫЕ ХОСТЫ</div><div class="n">412</div></div>' +
-          '<div class="stat"><div class="l">КЛИКИ ПО ССЫЛКАМ</div><div class="n">856</div></div>' +
-          '<div class="stat"><div class="l">АКТИВНОСТЬ 24Ч</div><div class="n">94</div></div>' +
+          '<div class="stat"><div class="l">ОБЩИЕ ПРОСМОТРЫ</div><div class="n">1,488</div></div>' +
+          '<div class="stat"><div class="l">КОМПЬЮТЕРЫ (ПК)</div><div class="n" style="color:#55ff91">520</div></div>' +
+          '<div class="stat"><div class="l">ТЕЛЕФОНЫ (МОБИЛЬНЫЕ)</div><div class="n" style="color:#ffe600">742</div></div>' +
+          '<div class="stat"><div class="l">ПЛАНШЕТЫ</div><div class="n" style="color:#ff5364">22</div></div>' +
         '</div>' +
-        '<div class="two">' +
-          '<div class="panel"><h2>ПОСЕЩАЕМОСТЬ ПО ДНЯМ</h2><div class="chart">' +
-            '<div class="bar" style="height:40%"><span>12</span></div>' +
-            '<div class="bar" style="height:65%"><span>24</span></div>' +
-            '<div class="bar" style="height:85%"><span>42</span></div>' +
-            '<div class="bar" style="height:50%"><span>18</span></div>' +
-            '<div class="bar" style="height:95%"><span>56</span></div>' +
-          '</div></div>' +
-          '<div class="panel"><h2>ТОП КАНАЛОВ</h2>' +
-            '<div class="rank"><span>Прямые переходы</span><b>45%</b></div>' +
-            '<div class="rank"><span>Telegram чаты</span><b>35%</b></div>' +
-            '<div class="rank"><span>Поиск / Другое</span><b>20%</b></div>' +
+        '<div class="two" style="margin-top:20px;">' +
+          '<div class="panel"><h2>УСТРОЙСТВА ПОЛЬЗОВАТЕЛЕЙ</h2>' +
+            '<div class="rank"><span>📱 Смартфоны (iOS / Android)</span><b>62%</b></div>' +
+            '<div class="rank"><span>💻 Компьютеры (Windows / macOS)</span><b>35%</b></div>' +
+            '<div class="rank"><span>📟 Планшеты (iPad / Tablets)</span><b>3%</b></div>' +
+          '</div>' +
+          '<div class="panel"><h2>ИСТОЧНИКИ ТРАФИКА</h2>' +
+            '<div class="rank"><span>Переходы из Telegram</span><b>78%</b></div>' +
+            '<div class="rank"><span>Прямые ссылки</span><b>22%</b></div>' +
           '</div>' +
         '</div>' +
       '</section>' +
       
+      // Раздел 2: ПОСЕТИТЕЛИ
       '<section class="section" id="vis-sec">' +
-        '<div class="panel"><h2>ПОСЕТИТЕЛИ / TELEGRAM</h2><div class="scroll"><table>' +
-          '<thead><tr><th>Последний визит</th><th>Telegram</th><th>Имя</th><th>Визиты</th><th>Источник</th></tr></thead>' +
+        '<div class="panel"><h2>ПОСЕТИТЕЛИ И ИХ УСТРОЙСТВА</h2><div class="scroll"><table>' +
+          '<thead><tr><th>Последний визит</th><th>Telegram</th><th>Имя</th><th>Устройство</th><th>Визиты</th></tr></thead>' +
           '<tbody>' +
-            Object.values(data.visitors).map(v => '<tr><td>' + esc(v.lastSeen) + '</td><td>@' + esc(v.telegramUsername) + '</td><td>' + esc(v.telegramName) + '</td><td>' + v.visits + '</td><td>' + esc(v.referrer) + '</td></tr>').join('') +
+            data.visitors.map(v => '<tr><td>' + esc(v.lastSeen) + '</td><td>@' + esc(v.telegramUsername) + '</td><td>' + esc(v.telegramName) + '</td><td><span class="pill">' + esc(v.device) + '</span></td><td>' + v.visits + '</td></tr>').join('') +
           '</tbody>' +
         '</table></div></div>' +
       '</section>' +
       
+      // Раздел 3: АКТИВНОСТЬ (Лог кликов)
       '<section class="section" id="events-sec">' +
-        '<div class="panel"><h2>ЛОГ АКТИВНОСТИ</h2><div class="scroll"><table>' +
-          '<thead><tr><th>Время</th><th>Тип</th><th>Раздел</th><th>Telegram</th></tr></thead>' +
+        '<div class="panel"><h2>ЛОГ АКТИВНОСТИ В РЕАЛЬНОМ ВРЕМЕНИ</h2><div class="scroll"><table>' +
+          '<thead><tr><th>Время</th><th>Событие</th><th>Описание действия</th><th>Пользователь</th></tr></thead>' +
           '<tbody>' +
-            data.events.map(e => '<tr><td>' + esc(e.ts) + '</td><td><span class="pill">' + esc(e.type) + '</span></td><td>Админка</td><td>@GSMSHEIKHO9</td></tr>').join('') +
+            data.events.map(e => '<tr><td>' + esc(e.ts) + '</td><td><span class="pill">' + esc(e.type) + '</span></td><td>' + esc(e.detail) + '</td><td>' + esc(e.user) + '</td></tr>').join('') +
           '</tbody>' +
         '</table></div></div>' +
       '</section>' +
       
+      // Раздел 4: НАСТРОЙКИ (Конструктор с добавлением и удалением кнопок)
       '<section class="section" id="settings-sec">' +
         '<div class="panel">' +
-          '<h2>УПРАВЛЕНИЕ САЙТОМ</h2>' +
-          '<div class="form-row">' +
-            '<div><label for="siteName">НАЗВАНИЕ</label><input id="siteName" class="input" value="' + esc(data.settings.siteName) + '"></div>' +
-            '<div><label for="bot">TELEGRAM BOT USERNAME</label><input id="bot" class="input" value="' + esc(data.settings.telegramBotUsername) + '" placeholder="my_bot"></div>' +
+          '<h2>УПРАВЛЕНИЕ КНОПКАМИ ГЛАВНОЙ СТРАНИЦЫ</h2>' +
+          '<div class="form-row" style="margin-bottom:20px;">' +
+            '<div><label for="siteName">НАЗВАНИЕ ПРОЕКТА</label><input id="siteName" class="input" value="' + esc(data.settings.siteName) + '"></div>' +
+            '<div><label for="bot">TELEGRAM BOT USERNAME</label><input id="bot" class="input" value="' + esc(data.settings.telegramBotUsername) + '"></div>' +
           '</div>' +
-          '<div class="notice">Здесь можно полностью управлять меню главной страницы: менять названия, описания, иконки и ссылки. Изменения сохраняются локально.</div>' +
-          '<div id="links-container" style="margin-top:20px;">' +
-            linksHtml +
+          '<div class="settings-toolbar">' +
+            '<button class="btn" id="addLinkBtn" type="button">＋ ДОБАВИТЬ НОВЫЙ РАЗДЕЛ</button>' +
           '</div>' +
-          '<button class="btn" id="saveSettings" style="margin-top:20px; width:100%">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>' +
+          '<div id="links-container" style="margin-top:15px;">' +
+            data.settings.links.map((l, index) => 
+              '<div class="link-editor" style="border: 1px solid #25321f; padding: 15px; margin-bottom: 15px; background: #060906;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">' +
+                  '<b>Раздел #' + (index + 1) + '</b>' +
+                  '<button class="mini danger-mini delete-btn" type="button" style="height:28px; min-height:28px; padding: 0 10px;">Удалить</button>' +
+                '</div>' +
+                '<div class="form-row">' +
+                  '<div><label>ИКОНКА</label><input class="input link-icon" value="' + esc(l.icon) + '"></div>' +
+                  '<div><label>ЗАГОЛОВОК КНОПКИ</label><input class="input link-title" value="' + esc(l.title) + '"></div>' +
+                  '<div><label>ПОДЗАГОЛОВОК</label><input class="input link-subtitle" value="' + esc(l.subtitle) + '"></div>' +
+                '</div>' +
+                '<div style="margin-top:10px;"><label>ССЫЛКА (URL / t.me)</label><input class="input link-url" value="' + esc(l.url) + '"></div>' +
+              '</div>'
+            ).join('') +
+          '</div>' +
+          '<button class="btn" id="saveSettings" style="margin-top:25px; width:100%; height:45px;">СОХРАНИТЬ И ОБНОВИТЬ МЕНЮ</button>' +
         '</div>' +
       '</section>' +
     '</div>';
 
+    // Логика табов
     document.querySelectorAll('.tab').forEach(button => {
       button.onclick = () => {
         document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -226,8 +233,60 @@
       };
     });
 
-    byId('saveSettings').onclick = () => {
-      alert('Изменения успешно зафиксированы в браузере!');
+    // Функция динамического удаления разделов
+    const initDeleteButtons = () => {
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = () => {
+          btn.closest('.link-editor').remove();
+        };
+      });
+    };
+    initDeleteButtons();
+
+    // Динамическое добавление новых разделов на главную
+    byId('addLinkBtn').onclick = () => {
+      const container = byId('links-container');
+      const index = container.querySelectorAll('.link-editor').length;
+      const div = document.createElement('div');
+      div.className = 'link-editor';
+      div.style = 'border: 1px solid #25321f; padding: 15px; margin-bottom: 15px; background: #060906;';
+      div.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">' +
+          '<b>Новый раздел #' + (index + 1) + '</b>' +
+          '<button class="mini danger-mini delete-btn" type="button" style="height:28px; min-height:28px; padding: 0 10px;">Удалить</button>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div><label>ИКОНКА</label><input class="input link-icon" value="🔗"></div>' +
+          '<div><label>ЗАГОЛОВОК КНОПКИ</label><input class="input link-title" value="Новая ссылка"></div>' +
+          '<div><label>ПОДЗАГОЛОВОК</label><input class="input link-subtitle" value="Описание"></div>' +
+        '</div>' +
+        '<div style="margin-top:10px;"><label>ССЫЛКА (URL / t.me)</label><input class="input link-url" value="https://t.me"></div>';
+      container.appendChild(div);
+      initDeleteButtons();
+    };
+
+    // Сохранение структуры меню
+    byId('saveSettings').onclick = async () => {
+      const updatedLinks = [];
+      document.querySelectorAll('.link-editor').forEach((el, idx) => {
+        updatedLinks.push({
+          id: String(idx + 1).padStart(2, '0'),
+          icon: el.querySelector('.link-icon').value,
+          title: el.querySelector('.link-title').value,
+          subtitle: el.querySelector('.link-subtitle').value,
+          url: el.querySelector('.link-url').value,
+          active: true
+        });
+      });
+
+      const updatedSettings = {
+        siteName: byId('siteName').value,
+        telegramBotUsername: byId('bot').value,
+        links: updatedLinks
+      };
+
+      await mockApi('/api/admin/settings', { method: 'POST', body: JSON.stringify(updatedSettings) });
+      alert('Конфигурация меню успешно сохранена!');
+      window.location.reload();
     };
 
     byId('logout').onclick = () => {
