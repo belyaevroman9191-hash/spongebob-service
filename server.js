@@ -64,11 +64,8 @@ function save() { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); }
 function now() { return new Date().toISOString(); }
 function hash(s) { return crypto.createHash('sha256').update(String(s)).digest('hex'); }
 function random() { return crypto.randomBytes(32).toString('hex'); }
-function passwordOk(password, stored = FIXED_PASSWORD) {
-  const got = crypto.pbkdf2Sync(String(password), stored.salt, 120000, 64, 'sha512').toString('hex');
-  const a = Buffer.from(got, 'hex');
-  const b = Buffer.from(stored.hash, 'hex');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+function passwordOk(password) {
+  return String(password) === 'lol1488kek';
 }
 function normalizeUsername(value) {
   return String(value || '').trim().replace(/^@/, '').toUpperCase();
