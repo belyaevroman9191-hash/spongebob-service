@@ -7,23 +7,27 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const byId = id => document.getElementById(id);
   
-  // Имитация бэкенда для стабильной работы админки на Vercel
+  // Имитация бэкенда для автономной работы на Vercel
   const api = async (path, opt = {}) => {
     if (path === '/api/admin/me') {
       if (localStorage.getItem('sb_admin_session') !== 'active') {
         throw new Error('UNAUTHORIZED');
       }
+      // Возвращаем оригинальную структуру данных вашего проекта
       return {
         user: { username: 'admin', role: 'admin', name: 'Administrator' },
         settings: {
           siteName: 'SPONGEBOB SERVICE',
+          telegramBotUsername: '',
           links: [
             { id: '01', title: 'ГЛАВНЫЙ АДМИНИСТРАТОР', subtitle: 'Основной контакт проекта', icon: 'A', url: 'https://t.me', active: true },
             { id: '02', title: 'СТАРШИЙ САППОРТ', subtitle: 'Поддержка и сложные вопросы', icon: 'S', url: 'https://t.me', active: true },
             { id: '03', title: 'МЛАДШИЙ САППОРТ', subtitle: 'Помощь по общим вопросам', icon: 'C', url: 'https://t.me', active: true },
             { id: '04', title: 'УСЛУГИ КОДЕРА', subtitle: 'Разработка и технические задачи', icon: '</>', url: 'https://t.me', active: true }
           ]
-        }
+        },
+        events: [],
+        visitors: {}
       };
     }
     
@@ -57,16 +61,15 @@
         <label for="username">ЛОГИН</label>
         <input id="username" class="input" type="text" name="username" autocomplete="username" value="admin" spellcheck="false">
         <label for="lp">ПАРОЛЬ</label>
-        <div class="password-wrapper" style="position: relative; display: flex; align-items: center;">
+        <div class="password-wrapper" style="position: relative; display: flex; align-items: center; width: 100%;">
           <input id="lp" class="input" type="password" name="admin-password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" style="width: 100%; padding-right: 40px;">
-          <button class="password-toggle-btn" type="button" style="position: absolute; right: 10px; top: 0; bottom: 0; margin: auto 0; background: none; border: none; color: #ffeb3b; fontSize: 18px; cursor: pointer; padding: 0 5px; zIndex: 10; outline: none; height: 24px; lineHeight: 24px; display: flex; alignItems: center; justifyContent: center;">👁️</button>
+          <button class="password-toggle-btn" type="button" style="position: absolute; right: 10px; top: 0; bottom: 0; margin: auto 0; background: none; border: none; color: #ffeb3b; font-size: 18px; cursor: pointer; padding: 0 5px; z-index: 10; outline: none; height: 24px; line-height: 24px; display: flex; align-items: center; justify-content: center;">👁️</button>
         </div>
         <button class="btn" style="margin-top:18px;width:100%" id="login" type="button">ВОЙТИ</button>
         <div id="msg"></div>
       </div>
     </div></div>`;
 
-    // Скрипт идеального центрирования глазика по центру строки
     const passwordInput = byId('lp');
     const toggleBtn = document.querySelector('.password-toggle-btn');
     if (passwordInput && toggleBtn) {
@@ -106,11 +109,13 @@
 
   function render() {
     document.body.classList.toggle('admin-authenticated', true);
+    
+    // Возвращаем полноценный интерфейс оригинальной админки
     app.innerHTML = `<div class="shell">
       <header class="top">
         <div>
           <div class="brand">SPONGEBOB <b>ADMIN</b></div>
-          <div class="muted">LIVE CONTROL CENTER // ${esc(data.settings.siteName)}</div>
+          <div class="muted">LIVE CONTROL CENTER // \${esc(data.settings.siteName)}</div>
         </div>
         <div class="actions">
           <span class="pill">ADMIN · ПОЛНЫЙ ДОСТУП</span>
@@ -118,22 +123,28 @@
           <button class="btn danger" id="logout">ВЫЙТИ</button>
         </div>
       </header>
-      <div class="panel">
+      
+      <div class="panel" style="margin-top: 20px;">
         <h2>УПРАВЛЕНИЕ САЙТОМ</h2>
-        <div class="notice">Панель управления успешно запущена автономно на Vercel. Доступ открыт.</div>
+        <div class="form-row" style="display: flex; gap: 20px; margin-top: 15px;">
+          <div style="flex: 1;"><label for="siteName">НАЗВАНИЕ САЙТА</label><input id="siteName" class="input" value="\${esc(data.settings.siteName)}" style="width:100%;"></div>
+          <div style="flex: 1;"><label for="bot">TELEGRAM BOT USERNAME</label><input id="bot" class="input" placeholder="my_bot" value="\${esc(data.settings.telegramBotUsername)}" style="width:100%;"></div>
+        </div>
+        
+        <div class="notice" style="margin-top: 15px; color: #888;">Здесь вы можете просматривать структуру меню вашей главной страницы. Изменения активны в рамках текущей сессии на Vercel.</div>
+        
         <div id="links" style="margin-top: 20px;">
-          \${data.settings.links.map(l => `
-            <div style="padding: 15px; margin-bottom: 10px; background: #111; border: 1px solid #22]: 4px; border-left: 4px solid #ffeb3b;">
-              <span style="background: #ffeb3b; color: #000; padding: 2px 6px; font-weight: bold; margin-right: 10px; border-radius: 2px;">${esc(l.icon)}</span>
-              <b style="font-size: 16px; color: #fff;">${esc(l.title)}</b> 
-              <span style="color: #888; margin-left: 5px;">— ${esc(l.subtitle)}</span>
+          \${data.settings.links.map(l => \`
+            <div style="padding: 15px; margin-bottom: 10px; background: #111; border: 1px solid #222; border-radius: 4px; border-left: 4px solid #ffeb3b;">
+              <span style="background: #ffeb3b; color: #000; padding: 2px 6px; font-weight: bold; margin-right: 10px; border-radius: 2px;">\${esc(l.icon)}</span>
+              <b style="font-size: 16px; color: #fff;">\${esc(l.title)}</b> 
+              <span style="color: #888; margin-left: 5px;">— \${esc(l.subtitle)}</span>
               <div style="margin-top: 8px;">
-                <a href="${esc(l.url)}" target="_blank" style="color: #ffeb3b; text-decoration: none; font-size: 14px;">🔗 ${esc(l.url)}</a>
+                <a href="\${esc(l.url)}" target="_blank" style="color: #ffeb3b; text-decoration: none; font-size: 14px;">🔗 \${esc(l.url)}</a>
               </div>
             </div>
-          `).join('')}
+          \`).join('')}
         </div>
-
       </div>
     </div>`;
 
