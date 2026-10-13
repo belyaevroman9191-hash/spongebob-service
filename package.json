@@ -1,0 +1,17 @@
+{
+  "name": "spongebob-service-vercel",
+  "version": "1.1.0",
+  "private": true,
+  "description": "SPONGEBOB SERVICE landing page and serverless admin/analytics for Vercel",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "node -e \"console.error('Use vercel dev locally or deploy to Vercel; this app uses serverless functions.'); process.exit(1)\""
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2"
+  },
+  "devDependencies": {
+    "vercel": "^41.6.2"
+  }
+}
