@@ -15,7 +15,7 @@ const MAX_BODY = 1024 * 1024;
 // Login: admin
 const ADMIN_ACCOUNT = Object.freeze({ username: 'admin', role: 'admin', name: 'Administrator' });
 
-// Fixed password requested by the project owner: SpongeBob1488.
+// Fixed password requested by the project owner: Sponge1488.
 // Only the derived hash is stored in the application.
 const FIXED_PASSWORD = Object.freeze({
   salt: '012914fae7069b4cba5c416d86eecd6c',
