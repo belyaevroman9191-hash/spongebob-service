@@ -122,8 +122,18 @@
         <h2>УПРАВЛЕНИЕ САЙТОМ</h2>
         <div class="notice">Панель управления успешно запущена автономно на Vercel. Доступ открыт.</div>
         <div id="links" style="margin-top: 20px;">
-          ${data.settings.links.map(l => `<div style="padding: 10px; border-bottom: 1px solid #333;"><b>[\${l.icon}] esc(l.title)</b> — {esc(l.subtitle)} <br> <a href="\({l.url}" target="_blank" style="color: #ffeb3b">\){l.url}</a></div>`).join('')}
+          \${data.settings.links.map(l => `
+            <div style="padding: 15px; margin-bottom: 10px; background: #111; border: 1px solid #22]: 4px; border-left: 4px solid #ffeb3b;">
+              <span style="background: #ffeb3b; color: #000; padding: 2px 6px; font-weight: bold; margin-right: 10px; border-radius: 2px;">${esc(l.icon)}</span>
+              <b style="font-size: 16px; color: #fff;">${esc(l.title)}</b> 
+              <span style="color: #888; margin-left: 5px;">— ${esc(l.subtitle)}</span>
+              <div style="margin-top: 8px;">
+                <a href="${esc(l.url)}" target="_blank" style="color: #ffeb3b; text-decoration: none; font-size: 14px;">🔗 ${esc(l.url)}</a>
+              </div>
+            </div>
+          `).join('')}
         </div>
+
       </div>
     </div>`;
 
