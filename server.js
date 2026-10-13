@@ -19,7 +19,7 @@ const ADMIN_ACCOUNT = Object.freeze({ username: 'admin', role: 'admin', name: 'A
 // Only the derived hash is stored in the application.
 const FIXED_PASSWORD = Object.freeze({
   salt: '012914fae7069b4cba5c416d86eecd6c',
-  hash: 'c1382848bc271fe908fa12bc35312ef3de83f7859832ee995fee8170a9c2f49faa459aa7895e02de448c6bf8b1da48f1e8e0fec2157adef79b1bd40c213efafc'
+  hash: 'db91e1d2c6742587ff709b1f73b6fe8d3615951d3ae6da10c8c106a7f80db4570072b21cf56b825db7dfd08915e7968ff83be2b3ec327f311c1d0b510bc4bb1d'
 });
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
