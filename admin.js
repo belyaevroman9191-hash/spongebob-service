@@ -344,20 +344,27 @@ setInterval(() => {
     toggleBtn.innerHTML = '👁️';
     
     // Стили кнопочки под ваш темный дизайн
-    Object.assign(toggleBtn.style, {
-      position: 'absolute',
-      right: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      background: 'none',
-      border: 'none',
-      color: '#ffeb3b',
-      fontSize: '18px',
-      cursor: 'pointer',
-      padding: '5px',
-      zIndex: '10',
-      outline: 'none'
-    });
+Object.assign(toggleBtn.style, {
+  position: 'absolute',
+  right: '10px',
+  top: '0',
+  bottom: '0',
+  margin: 'auto 0',
+  background: 'none',
+  border: 'none',
+  color: '#ffeb3b',
+  fontSize: '18px',
+  cursor: 'pointer',
+  padding: '0 5px',
+  zIndex: '10',
+  outline: 'none',
+  height: '24px',
+  lineHeight: '24px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+});
+
     
     // Логика переключения видимости
     toggleBtn.addEventListener('click', (e) => {
