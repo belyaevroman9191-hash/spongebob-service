@@ -3,11 +3,27 @@
   "cleanUrls": true,
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
+      "src": "/admin",
+      "dest": "admin.html"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "admin.html"
+    },
+    {
+      "src": "/admin.js",
+      "dest": "admin.js"
+    },
+    {
+      "src": "/admin.css",
+      "dest": "admin.css"
     },
     {
       "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
     }
   ]
 }
