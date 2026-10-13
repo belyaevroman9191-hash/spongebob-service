@@ -330,6 +330,55 @@
     const m = byId('secMsg');
     if (m) { m.textContent = 'Аналитика очищена.'; m.className = 'ok'; }
   }
+// Автоматическое добавление глазика для поля пароля
+setInterval(() => {
+  const passwordInput = document.querySelector('input[type="password"], input[data-type="password"]');
+  if (passwordInput && !passwordInput.parentElement.querySelector('.password-toggle-btn')) {
+    const parent = passwordInput.parentElement;
+    parent.style.position = 'relative';
+    
+    // Создаем кнопку-глазик
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'password-toggle-btn';
+    toggleBtn.type = 'button';
+    toggleBtn.innerHTML = '👁️';
+    
+    // Стили кнопочки под ваш темный дизайн
+    Object.assign(toggleBtn.style, {
+      position: 'absolute',
+      right: '10px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      background: 'none',
+      border: 'none',
+      color: '#ffeb3b',
+      fontSize: '18px',
+      cursor: 'pointer',
+      padding: '5px',
+      zIndex: '10',
+      outline: 'none'
+    });
+    
+    // Логика переключения видимости
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.innerHTML = '🙈';
+        toggleBtn.style.color = '#fff';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.innerHTML = '👁️';
+        toggleBtn.style.color = '#ffeb3b';
+      }
+    });
+    
+    parent.appendChild(toggleBtn);
+    
+    // Немного сдвигаем текст внутри инпута, чтобы он не заезжал под глазик
+    passwordInput.style.paddingRight = '40px';
+  }
+}, 500);
 
   start();
 })();
