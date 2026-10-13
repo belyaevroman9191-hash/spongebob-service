@@ -1,0 +1,15 @@
+{
+  "name": "spongebob-service-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SpongeBob Service landing page with built-in analytics and web admin",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}

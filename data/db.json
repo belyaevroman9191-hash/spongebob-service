@@ -1,0 +1,120 @@
+{
+  "auth": {
+    "version": 2,
+    "password": {
+      "salt": "012914fae7069b4cba5c416d86eecd6c",
+      "hash": "c1382848bc271fe908fa12bc35312ef3de83f7859832ee995fee8170a9c2f49faa459aa7895e02de448c6bf8b1da48f1e8e0fec2157adef79b1bd40c213efafc"
+    }
+  },
+  "sessions": {
+    "843d7262ac30678c3767480f87ff20ede3a91913c6953a206d95e6daf5feb9b9": {
+      "createdAt": 1791821504605,
+      "expiresAt": 1791864704605,
+      "username": "admin",
+      "role": "admin",
+      "name": "Administrator"
+    },
+    "9714fd4c186bd45cebe7e19d85adf706eca2224c48be1271768ae28f7c02802a": {
+      "createdAt": 1791821761052,
+      "expiresAt": 1791864961052,
+      "username": "admin",
+      "role": "admin",
+      "name": "Administrator"
+    }
+  },
+  "settings": {
+    "siteName": "SPONGEBOB SERVICE",
+    "telegramBotUsername": "",
+    "links": [
+      {
+        "id": "01",
+        "title": "ГЛАВНЫЙ АДМИНИСТРАТОР",
+        "subtitle": "Основной контакт проекта",
+        "icon": "A",
+        "url": "https://t.me/GSMSHEIKHO9",
+        "active": true
+      },
+      {
+        "id": "02",
+        "title": "СТАРШИЙ САППОРТ",
+        "subtitle": "Поддержка и сложные вопросы",
+        "icon": "S",
+        "url": "https://t.me/sponge_bo888",
+        "active": true
+      },
+      {
+        "id": "03",
+        "title": "МЛАДШИЙ САППОРТ",
+        "subtitle": "Помощь по общим вопросам",
+        "icon": "C",
+        "url": "https://t.me/SuportSpongeBob",
+        "active": true
+      },
+      {
+        "id": "04",
+        "title": "УСЛУГИ КОДЕРА",
+        "subtitle": "Разработка и технические задачи",
+        "icon": "</>",
+        "url": "https://t.me/GSMSHEIKHO9",
+        "active": true
+      }
+    ]
+  },
+  "visitors": {
+    "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8": {
+      "id": "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8",
+      "firstSeen": "2026-10-12T16:15:42.128Z",
+      "lastSeen": "2026-10-12T16:17:33.124Z",
+      "visits": 4,
+      "events": 5,
+      "telegramUsername": null,
+      "telegramName": null,
+      "referrer": "http://localhost:3000/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "ipHash": "eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3"
+    }
+  },
+  "events": [
+    {
+      "id": "27c5a9ed20d8d927290b34aa87c61aada81e6c7b614f741b717520ff4ff1ce36",
+      "ts": "2026-10-12T16:15:42.129Z",
+      "visitorId": "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8",
+      "type": "page_view",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "254413d0bb21cdf770c81c70b8d350ce86ee99fdb9ab0c62aa3a71d3217d2c00",
+      "ts": "2026-10-12T16:17:00.463Z",
+      "visitorId": "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8",
+      "type": "page_view",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "80c768f82f7bd3b8b68dc264544393aa2f0f155c791d7dd518fc881dcff45c7b",
+      "ts": "2026-10-12T16:17:12.149Z",
+      "visitorId": "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8",
+      "type": "link_click",
+      "linkId": "05",
+      "title": "НОВЫЙ РАЗДЕЛ",
+      "href": "https://t.me/"
+    },
+    {
+      "id": "0002e3dc7c3d7233e15e364a0beb3e75d1eb1805c7cc22f8b25a92ef8c170255",
+      "ts": "2026-10-12T16:17:20.752Z",
+      "visitorId": "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8",
+      "type": "page_view",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "f0738863bc61bce0a0adaec565affe04a19699f412aadf2a0713b27667bf76da",
+      "ts": "2026-10-12T16:17:33.124Z",
+      "visitorId": "99c32097e1e7e9e1e28b3a0a67b72d5c5da6720065f2e1e63bb577af03a0b7a8",
+      "type": "page_view",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    }
+  ]
+}
