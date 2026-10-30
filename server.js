@@ -132,6 +132,26 @@ const mime = {
   '.json': 'application/json'
 };
 
+// Вынесли конфигурацию бота в общую видимость
+const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
+const MY_CHAT_ID = '8908951710'; 
+
+function sendTelegramLog(title, username, telegramId, action) {
+  if (!BOT_TOKEN || !MY_CHAT_ID) return;
+  const safeUsername = String(username || 'Не указан').replace(/_/g, '\\_');
+  const tgText = encodeURIComponent(
+    `🔔 *${title}*\n\n` +
+    `👤 *Пользователь:* @${safeUsername}\n` +
+    `🆔 *ID:* ${telegramId || 'Не указан'}\n` +
+    `📍 *Действие:* ${action}\n` +
+    `🕒 *Время:* ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  );
+    const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
+
+  https.get(tgUrl, (tgRes) => {
+    tgRes.on('data', () => {});
+  }).on('error', (e) => console.error('Ошибка Telegram HTTPS:', e.message));
+}
 function track(req, res, type, payload = {}) {
   const c = cookies(req);
   let vid = c.visitor_id;
@@ -157,36 +177,18 @@ function track(req, res, type, payload = {}) {
   visitor.ipHash = hash(ip);
   if (payload.telegramUsername) visitor.telegramUsername = String(payload.telegramUsername).replace(/^@/, '').slice(0, 64);
   if (payload.telegramName) visitor.telegramName = String(payload.telegramName).slice(0, 120);
+  
   db.events.push({ id: random(), ts: now(), visitorId: vid, type, ...payload });
   if (db.events.length > 20000) db.events.splice(0, db.events.length - 20000);
   save();
 
-  // --- НАДЁЖНЫЙ БЛОК ОТПРАВКИ В TELEGRAM (ИСПРАВЛЕННЫЙ) ---
-  const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
-  const MY_CHAT_ID = '8908951710'; // Поменяйте на личный ID, если лог не пришёл
-
-  if (payload.telegramUsername && BOT_TOKEN && MY_CHAT_ID) {
-    const safeUsername = String(payload.telegramUsername).replace(/_/g, '\\_');
-    const tgText = encodeURIComponent(
-      "🔔 *Новый переход в SpongeBob Service!*\n\n" +
-      "👤 *Пользователь:* @" + safeUsername + "\n" +
-      "🆔 *ID:* " + (payload.telegramId || 'Не указан') + "\n" +
-      "📍 *Действие:* Открытие сайта\n" +
-      "🕒 *Время:* " + new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + " МСК"
-    );
-
-    // Ссылка собрана абсолютно правильно через поддомен api. и префикс /bot
-       const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
-
-
-    https.get(tgUrl, (tgRes) => {
-      tgRes.on('data', () => {});
-    }).on('error', (e) => console.error('Ошибка Telegram HTTPS:', e.message));
+  if (payload.telegramUsername) {
+    sendTelegramLog("Новый переход в SpongeBob Service!", payload.telegramUsername, payload.telegramId, "Открытие сайта");
   }
-  // --------------------------------------------------------
 
   json(res, 200, { ok: true }, { 'Set-Cookie': `visitor_id=${encodeURIComponent(vid)}; Max-Age=31536000; Path=/; SameSite=Lax` });
 }
+
 function stats() {
   const ev = Array.isArray(db.events) ? db.events : [];
   const nowMs = Date.now();
@@ -255,7 +257,6 @@ function stats() {
     live: Object.values(db.visitors || {}).filter(v => nowMs - new Date(v.lastSeen).getTime() < 120000).length
   };
 }
-
 async function api(req, res, pathname) {
   if (req.method === 'POST' && pathname === '/api/event') {
     let b;
@@ -282,16 +283,44 @@ async function api(req, res, pathname) {
   if (req.method === 'POST' && pathname === '/api/admin/login') {
     let b;
     try { b = await body(req); } catch { return json(res, 400, { error: 'BAD_JSON' }); }
+    
+    let isTgAuth = false;
+    let tgUser = null;
+
+    // Проверяем: вход идет обычный или через Telegram WebApp
+    if (b.tgInitData && b.userId) {
+      isTgAuth = true;
+      tgUser = { id: b.userId, username: b.username || 'unknown' };
+    }
+
     const username = String(b.username || '').trim();
-    if (username !== ADMIN_ACCOUNT.username || !passwordOk(b.password)) return json(res, 401, { error: 'INVALID_LOGIN' });
-    const account = ADMIN_ACCOUNT;
+    
+    // Если это не ТГ-вход и неверный пароль admin — отказ
+    if (!isTgAuth && (username !== ADMIN_ACCOUNT.username || !passwordOk(b.password))) {
+      return json(res, 401, { error: 'INVALID_LOGIN' });
+    }
+
+    const account = { ...ADMIN_ACCOUNT };
+    
+    // Переопределяем имя в сессии данными из Telegram Mini App
+    if (isTgAuth && tgUser) {
+      account.name = `TG: ${tgUser.username}`;
+      account.telegramId = tgUser.id;
+      account.telegramUsername = tgUser.username;
+      
+      // Сразу шлем мгновенный лог в бота о входе админа!
+      sendTelegramLog("Вход в Панель Администратора!", tgUser.username, tgUser.id, "Переход в Mini App");
+    }
+
     const sid = random();
     db.sessions[sid] = {
       createdAt: Date.now(),
       expiresAt: Date.now() + SESSION_TTL,
       username: account.username,
       role: account.role,
-      name: account.name
+      name: account.name,
+      telegramId: account.telegramId || null,
+      telegramUsername: account.telegramUsername || null
     };
     save();
     return json(res, 200, { ok: true, user: account }, {
@@ -305,13 +334,17 @@ async function api(req, res, pathname) {
     save();
     return json(res, 200, { ok: true }, { 'Set-Cookie': 'admin_session=; Max-Age=0; HttpOnly; Path=/; SameSite=Strict' });
   }
-
   if (pathname.startsWith('/api/admin/')) {
     const s = requireAdmin(req, res);
     if (!s) return;
 
     if (req.method === 'GET' && pathname === '/api/admin/me') {
-      return json(res, 200, { ok: true, user: { username: s.username, role: s.role, name: s.name }, settings: db.settings, stats: stats() });
+      return json(res, 200, { 
+        ok: true, 
+        user: { username: s.username, role: s.role, name: s.name, telegramUsername: s.telegramUsername }, 
+        settings: db.settings, 
+        stats: stats() 
+      });
     }
 
     if (req.method === 'GET' && pathname === '/api/admin/analytics') {
