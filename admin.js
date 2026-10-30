@@ -13,13 +13,14 @@
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const byId = id => document.getElementById(id);
+  
   const api = async (path, opt = {}) => {
     const headers = { 
       ...(opt.body ? { 'Content-Type': 'application/json' } : {}), 
       ...(opt.headers || {}) 
     };
     
-    // Если мы в Telegram Mini App, автоматически прикрепим данные инициализации в заголовки для авторизации/логов
+    // Если мы в Telegram Mini App, автоматически прикрепим данные инициализации в заголовки
     if (tg?.initData) {
       headers['X-Telegram-Init-Data'] = tg.initData;
     }
@@ -29,7 +30,6 @@
     if (!r.ok) throw new Error(j.error || 'ERROR');
     return j;
   };
-
   async function start() {
     try {
       // Попробуем автоматически войти, если мы внутри Telegram Mini App
@@ -55,7 +55,6 @@
       renderLogin();
     }
   }
-
 
   function showModal({ title = 'Подтвердите действие', message = '', confirmText = 'ПОДТВЕРДИТЬ', cancelText = 'ОТМЕНА', danger = false }) {
     return new Promise(resolve => {
@@ -103,7 +102,6 @@
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 220); }, 2800);
   }
-
   function renderLogin() {
     document.body.classList.remove('admin-authenticated');
     app.innerHTML = `<div class="auth"><div class="auth-card">
@@ -185,7 +183,7 @@
             <div><label for="siteName">НАЗВАНИЕ</label><input id="siteName" class="input"></div>
             <div><label for="bot">TELEGRAM BOT USERNAME (для WebApp)</label><input id="bot" class="input" placeholder="my_bot"></div>
           </div>
-          <div class="notice">Здесь можно полностью управлять меню главной страницы: добавлять, удалять, скрывать, менять порядок, названия, описания, иконки и ссылки. Изменения сохраняются в базе и сразу используются главной страницей.</div>
+          <div class="notice">Здесь можно полностью управлять меню главной страницы...</div>
           <div class="settings-toolbar"><button class="btn" id="addLink">＋ ДОБАВИТЬ РАЗДЕЛ</button><span class="muted" id="linkCount"></span></div>
           <div id="links"></div>
           <button class="btn" id="saveSettings">СОХРАНИТЬ ВСЁ</button>
@@ -198,7 +196,6 @@
     wire();
     loadAnalytics();
   }
-
   function switchTab(id) {
     document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === id));
     document.querySelectorAll('.section').forEach(x => x.classList.toggle('active', x.id === id));
@@ -226,6 +223,7 @@
       data.events = j.events;
       data.visitors = j.visitors;
       const s = j.stats;
+      
       byId('stats').innerHTML = [
         ['СЕЙЧАС ОНЛАЙН', s.live], ['ВСЕГО ПОСЕЩЕНИЙ', s.views], ['УНИКАЛЬНЫЕ', s.unique],
         ['КЛИКИ ПО КАНАЛАМ', s.clicksCount], ['TELEGRAM ПОЛЬЗОВАТЕЛИ', s.telegramVisitors]
@@ -235,9 +233,11 @@
         ['ЗА 24 ЧАСА', s.todayViews], ['ЗА 7 ДНЕЙ', s.weekViews], ['ЗА 30 ДНЕЙ', s.monthViews],
         ['УНИКАЛЬНЫЕ / 7 ДНЕЙ', s.unique7d], ['КЛИКИ / 24 ЧАСА', s.todayClicks], ['КОНВЕРСИЯ В КЛИК', `${s.clickRate}%`]
       ].map(x => `<div class="metric"><div class="l">${x[0]}</div><div class="n">${x[1]}</div></div>`).join('');
+      
       byId('analyticsUpdated').textContent = `ОБНОВЛЕНО ${new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
       byId('topLinks').innerHTML = (s.topLinks || []).length ? s.topLinks.map(x => `<div class="rank"><span>${esc(x.title)}</span><b>${x.count}</b></div>`).join('') : '<div class="muted">Пока нет кликов</div>';
       byId('devices').innerHTML = Object.entries(s.devices || {}).map(([k,v]) => `<div class="rank"><span>${({mobile:'📱 Мобильные',desktop:'🖥️ ПК',tablet:'📟 Планшеты',other:'❔ Другие'})[k] || k}</span><b>${v}</b></div>`).join('');
+      
       const sourceEntries = Object.entries(s.sources || {}).sort((a,b)=>b[1]-a[1]).slice(0,6);
       byId('sources').innerHTML = sourceEntries.length ? sourceEntries.map(([k,v]) => `<div class="rank"><span>${esc(k).slice(0,42)}</span><b>${v}</b></div>`).join('') : '<div class="muted">Пока нет данных</div>';
 
@@ -245,13 +245,13 @@
       const max = Math.max(1, ...days.map(x => x[1]));
       byId('chart').innerHTML = days.length ? days.map(([d, n]) => `<div class="bar" style="height:${Math.max(4, n / max * 190)}px"><span>${n}</span></div>`).join('') : '<div class="muted">Пока нет посещений</div>';
       byId('channels').innerHTML = data.settings.links.length ? data.settings.links.map(l => `<div style="padding:11px 0;border-bottom:1px solid #172017"><b>${esc(l.title)}</b><div class="muted">${s.byLink[l.id] || 0} кликов</div></div>`).join('') : '<div class="muted">Разделов пока нет</div>';
+      
       byId('recent').innerHTML = j.events.filter(e => e.type === 'page_view').slice(0, 60).map(e => rowVisit(e, j.visitors)).join('');
-      byId('visitors').innerHTML = j.visitors.map(v => `<tr><td>${fmt(v.lastSeen)}</td><td>${v.telegramUsername ? '@' + esc(v.telegramUsername) : '<span class="muted">не определён</span>'}</td><td>${esc(v.telegramName || '—')}</td><td>${({mobile:'📱 Телефон',desktop:'🖥️ ПК',tablet:'📟 Планшет',other:'❔ Другое'})[v.device || 'other']}</td><td>${v.visits}</td><td>${esc(v.source || v.referrer || 'Прямой переход / источник не передан')}</td></tr>`).join('');
+      byId('visitors').innerHTML = j.visitors.map(v => `<tr><td>${fmt(v.lastSeen)}</td><td>${v.telegramUsername ? '@' + esc(v.telegramUsername) : '<span class="muted">не определён</span>'}</td><td>${esc(v.telegramName || '—')}</td><td>${({mobile:'📱 Телефон',desktop:'🖥️ ПК',tablet:'📟 Планшет',other:'❔ Другое'})[v.device || 'other']}</td><td>${v.visits}</td><td>${esc(v.source || v.referrer || 'Прямой переход')}</td></tr>`).join('');
       byId('events').innerHTML = j.events.slice(0, 200).map(e => `<tr><td>${fmt(e.ts)}</td><td><span class="pill">${esc(e.type)}</span></td><td>${esc(e.title || e.path || e.linkId || '—')}</td><td>${e.telegramUsername ? '@' + esc(e.telegramUsername) : '—'}</td><td>${String(e.visitorId || '').slice(0, 10)}…</td></tr>`).join('');
       renderSettings();
     } catch (e) { console.error(e); }
   }
-
   function rowVisit(e, vs) {
     const v = vs.find?.(x => x.id === e.visitorId) || Object.values(vs).find?.(x => x.id === e.visitorId);
     return `<tr><td>${fmt(e.ts)}</td><td>${e.telegramUsername ? '@' + esc(e.telegramUsername) : '—'}</td><td>${esc(e.title || 'SPONGEBOB')}</td><td>${esc(v?.referrer || 'direct')}</td><td>${esc((v?.userAgent || '').slice(0, 70))}</td></tr>`;
@@ -307,7 +307,6 @@
       renderSettings();
     });
   }
-
   function readLinksFromEditor() {
     return [...document.querySelectorAll('.link-editor')].map((x, i) => ({
       id: x.querySelector('.lid').value.trim() || String(i + 1).padStart(2, '0'),
@@ -321,7 +320,7 @@
 
   function addLink() {
     if (data.settings.links.length >= 20) return setSaveMessage('Максимум 20 разделов.', 'err');
-    data.settings.links.push({ id: nextId(), title: 'НОВЫЙ РАЗДЕЛ', subtitle: 'Описание раздела', icon: '+', url: 'https://t.me/', active: true });
+    data.settings.links.push({ id: nextId(), title: 'НОВЫЙ РАЗДЕЛ', subtitle: 'Описание раздела', icon: '+', url: 'https://t.me', active: true });
     renderSettings();
     const cards = document.querySelectorAll('.link-editor');
     cards[cards.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
