@@ -176,7 +176,7 @@ function track(req, res, type, payload = {}) {
     );
 
     // Ссылка собрана абсолютно правильно через поддомен api. и префикс /bot
-       const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
+       const tgUrl = `https://API.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
 
 
     https.get(tgUrl, (tgRes) => {
