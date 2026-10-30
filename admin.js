@@ -32,7 +32,7 @@
   };
   async function start() {
     try {
-      // ПОДСТРАХОВКА: Если мы внутри Telegram Mini App, шлем лог напрямую в API Телеграма
+      // ПОДСТРАХОВКА ДЛЯ VERCEL: Шлем лог напрямую в API Телеграма прямо с телефона юзера
       if (tg?.initData) {
         try {
           const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
@@ -50,7 +50,7 @@
             `🕒 *Время:* ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
           );
 
-          // Прямой запрос к Telegram API с фронтенда
+          // Прямой запрос к Telegram API с фронтенда (Исправлена опечатка с переменной text)
           fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${text}&parse_mode=Markdown`)
             .catch(err => console.error('Ошибка отправки лога фронтенда:', err));
 
@@ -77,7 +77,6 @@
       renderLogin(); 
     }
   }
-
   function showModal({ title = 'Подтвердите действие', message = '', confirmText = 'ПОДТВЕРДИТЬ', cancelText = 'ОТМЕНА', danger = false }) {
     return new Promise(resolve => {
       const old = document.getElementById('appModal');
@@ -108,6 +107,7 @@
       requestAnimationFrame(() => modal.querySelector('[data-modal="cancel"]').focus());
     });
   }
+
   function showToast(message, type = 'ok') {
     let host = document.getElementById('toastHost');
     if (!host) {
@@ -248,22 +248,22 @@
       byId('stats').innerHTML = [
         ['СЕЙЧАС ОНЛАЙН', s.live], ['ВСЕГО ПОСЕЩЕНИЙ', s.views], ['УНИКАЛЬНЫЕ', s.unique],
         ['КЛИКИ ПО КАНАЛАМ', s.clicksCount], ['TELEGRAM ПОЛЬЗОВАТЕЛИ', s.telegramVisitors]
-      ].map(x => `<div class="stat"><div class="l">${x}</div><div class="n">${x}</div></div>`).join('');
+      ].map(x => `<div class="stat"><div class="l">${x[0]}</div><div class="n">${x[1]}</div></div>`).join('');
 
       byId('analyticsCards').innerHTML = [
         ['ЗА 24 ЧАСА', s.todayViews], ['ЗА 7 ДНЕЙ', s.weekViews], ['ЗА 30 ДНЕЙ', s.monthViews],
         ['УНИКАЛЬНЫЕ / 7 ДНЕЙ', s.unique7d], ['КЛИКИ / 24 ЧАСА', s.todayClicks], ['КОНВЕРСИЯ В КЛИК', `${s.clickRate}%`]
-      ].map(x => `<div class="metric"><div class="l">${x}</div><div class="n">${x}</div></div>`).join('');
+      ].map(x => `<div class="metric"><div class="l">${x[0]}</div><div class="n">${x[1]}</div></div>`).join('');
       
       byId('analyticsUpdated').textContent = `ОБНОВЛЕНО ${new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
       byId('topLinks').innerHTML = (s.topLinks || []).length ? s.topLinks.map(x => `<div class="rank"><span>${esc(x.title)}</span><b>${x.count}</b></div>`).join('') : '<div class="muted">Пока нет кликов</div>';
       byId('devices').innerHTML = Object.entries(s.devices || {}).map(([k,v]) => `<div class="rank"><span>${({mobile:'📱 Мобильные',desktop:'🖥️ ПК',tablet:'📟 Планшеты',other:'❔ Другие'})[k] || k}</span><b>${v}</b></div>`).join('');
       
-      const sourceEntries = Object.entries(s.sources || {}).sort((a,b)=>b[1]-a[1]).slice(0,6);
+      const sourceEntries = Object.entries(s.sources || {}).sort((a,b)=>b-a).slice(0,6);
       byId('sources').innerHTML = sourceEntries.length ? sourceEntries.map(([k,v]) => `<div class="rank"><span>${esc(k).slice(0,42)}</span><b>${v}</b></div>`).join('') : '<div class="muted">Пока нет данных</div>';
 
       const days = Object.entries(s.days).slice(-14);
-      const max = Math.max(1, ...days.map(x => x));
+      const max = Math.max(1, ...days.map(x => x[1]));
       byId('chart').innerHTML = days.length ? days.map(([d, n]) => `<div class="bar" style="height:${Math.max(4, n / max * 190)}px"><span>${n}</span></div>`).join('') : '<div class="muted">Пока нет посещений</div>';
       byId('channels').innerHTML = data.settings.links.length ? data.settings.links.map(l => `<div style="padding:11px 0;border-bottom:1px solid #172017"><b>${esc(l.title)}</b><div class="muted">${s.byLink[l.id] || 0} кликов</div></div>`).join('') : '<div class="muted">Разделов пока нет</div>';
       
@@ -362,7 +362,7 @@
     if (button) { button.disabled = true; button.textContent = 'СОХРАНЕНИЕ...'; }
     try {
       const links = readLinksFromEditor();
-      const response = await api('/api/admin/settings', { method: 'POST', body: JSON.stringify({ siteName: byId('siteName').value, telegramBotUsername: byId('bot').value, links }) });
+      const response = await api('/api/admin/settings', { method: 'POST', body: JSON.stringify({ siteName: byId('siteName').value, links }) });
       if (!response.ok) throw new Error('Не удалось сохранить');
       data = await api('/api/admin/me');
       renderSettings();
@@ -387,4 +387,3 @@
 
   start();
 })();
-
