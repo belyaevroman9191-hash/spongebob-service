@@ -9,23 +9,15 @@ const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const PORT = Number(process.env.PORT || 3000);
-const SESSION_TTL = 1000 * 60 * 60 * 12;
 const MAX_BODY = 1024 * 1024;
+
+// Фиксированная сессия для обхода ограничений Vercel Read-Only базы данных
+const STATIC_SESSION_ID = 'SPONGEBOB_ADMIN_SECURE_SESSION_TOKEN';
 
 // Единственный общий аккаунт для панели администратора. Логин: admin
 const ADMIN_ACCOUNT = Object.freeze({ username: 'admin', role: 'admin', name: 'Administrator' });
 
-// Фиксированный хэш пароля (пароль: SpongeBob1488)
-const FIXED_PASSWORD = Object.freeze({
-  salt: '012914fae7069b4cba5c416d86eecd6c',
-  hash: 'c1382848bc271fe908fa12bc35312ef3de83f7859832ee995fee8170a9c2f49faa459aa7895e02de448c6bf8b1da48f1e8e0fec2157adef79b1bd40c213efafc'
-});
-
-fs.mkdirSync(DATA_DIR, { recursive: true });
-
 const defaultDb = () => ({
-  auth: { version: 2, password: FIXED_PASSWORD },
-  sessions: {},
   settings: {
     siteName: 'SPONGEBOB SERVICE',
     telegramBotUsername: '',
@@ -45,31 +37,23 @@ try {
   db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
 } catch {
   db = defaultDb();
-  save();
 }
 
-if (!db.auth || db.auth.version !== 2) {
-  db.auth = { version: 2, password: FIXED_PASSWORD };
-  db.sessions = {};
-  save();
-}
-if (!db.sessions) db.sessions = {};
 if (!db.visitors) db.visitors = {};
 if (!db.events) db.events = [];
 if (!db.settings) db.settings = defaultDb().settings;
-function save() { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); }
+
+// Безопасное сохранение: не падает, если Vercel блокирует запись на диск
+function save() { 
+  try { 
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); 
+  } catch (e) {
+    console.log('Vercel диск находится в режиме Read-Only. Изменения временно сохранены в RAM памяти.');
+  }
+}
 function now() { return new Date().toISOString(); }
 function hash(s) { return crypto.createHash('sha256').update(String(s)).digest('hex'); }
 function random() { return crypto.randomBytes(32).toString('hex'); }
-function passwordOk(password, stored = FIXED_PASSWORD) {
-  const got = crypto.pbkdf2Sync(String(password), stored.salt, 120000, 64, 'sha512').toString('hex');
-  const a = Buffer.from(got, 'hex');
-  const b = Buffer.from(stored.hash, 'hex');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-function normalizeUsername(value) {
-  return String(value || '').trim().replace(/^@/, '').toUpperCase();
-}
 function cookies(req) {
   const out = {};
   (req.headers.cookie || '').split(';').forEach(x => {
@@ -96,25 +80,17 @@ async function body(req) {
     req.on('error', reject);
   });
 }
-function session(req) {
-  const sid = cookies(req).admin_session;
-  const s = sid && db.sessions[sid];
-  if (!s) return null;
-  if (Date.now() > s.expiresAt) {
-    delete db.sessions[sid];
-    save();
-    return null;
-  }
-  return s;
-}
+
+// Проверка сессии адаптирована под статический токен для Vercel Serverless среды
 function requireAdmin(req, res) {
-  const s = session(req);
-  if (!s) {
+  const c = cookies(req);
+  if (c.admin_session !== STATIC_SESSION_ID) {
     json(res, 401, { error: 'UNAUTHORIZED' });
     return null;
   }
-  return s;
+  return { username: 'admin', role: 'admin', name: 'Administrator' };
 }
+
 function safePath(p) {
   const decoded = decodeURIComponent(p);
   const clean = path.normalize(decoded).replace(/^([.][.][/\\])+/, '');
@@ -132,7 +108,6 @@ const mime = {
   '.json': 'application/json'
 };
 
-// Вынесли конфигурацию бота в общую видимость
 const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
 const MY_CHAT_ID = '8908951710'; 
 
@@ -146,7 +121,7 @@ function sendTelegramLog(title, username, telegramId, action) {
     `📍 *Действие:* ${action}\n` +
     `🕒 *Время:* ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
   );
-    const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
+  const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
 
   https.get(tgUrl, (tgRes) => {
     tgRes.on('data', () => {});
@@ -287,7 +262,6 @@ async function api(req, res, pathname) {
     let isTgAuth = false;
     let tgUser = null;
 
-    // Включаем беспарольный вход для Mini App
     if (b.tgInitData || b.userId) {
       isTgAuth = true;
       tgUser = { id: b.userId || '8908951710', username: b.username || 'admin' };
@@ -295,45 +269,32 @@ async function api(req, res, pathname) {
 
     const username = String(b.username || '').trim();
     
-    // Если заходят через обычный браузер (нет данных ТГ) — проверяем стандартный пароль
-    if (!isTgAuth && (username !== ADMIN_ACCOUNT.username || !passwordOk(b.password))) {
+    // Текстовая проверка обычного пароля
+    if (!isTgAuth && (username !== 'admin' || b.password !== 'SpongeBob1488')) {
       return json(res, 401, { error: 'INVALID_LOGIN' });
     }
 
-    const account = { ...ADMIN_ACCOUNT };
+    const account = { username: 'admin', role: 'admin', name: 'Administrator' };
     
     if (isTgAuth && tgUser) {
       account.name = `TG: ${tgUser.username}`;
       account.telegramId = tgUser.id;
       account.telegramUsername = tgUser.username;
-      
-      // Сразу шлем лог в бота!
-      sendTelegramLog("Вход в Панель Администратора!", tgUser.username, tgUser.id, "Переход в Mini App");
     }
 
-    const sid = random();
-    db.sessions[sid] = {
-      createdAt: Date.now(),
-      expiresAt: Date.now() + SESSION_TTL,
-      username: account.username,
-      role: account.role,
-      name: account.name,
-      telegramId: account.telegramId || null,
-      telegramUsername: account.telegramUsername || null
-    };
-    save();
-    
-    // Убираем HttpOnly флаг, чтобы Vercel Serverless не терял куки в браузере WebApp
+    // ВЫНЕСЛИ ЛОГ ИЗ УСЛОВИЯ: Теперь бот напишет вам в чат в любом случае!
+    const logUser = tgUser?.username || username;
+    const logId = tgUser?.id || 'Ручной ввод пароля';
+    sendTelegramLog("Вход в Панель Администратора!", logUser, logId, "Авторизация подтверждена");
+
+    // Отдаем куку сессии обратно фронтенду
     return json(res, 200, { ok: true, user: account }, {
-      'Set-Cookie': `admin_session=${sid}; Max-Age=${SESSION_TTL / 1000}; Path=/; SameSite=Lax`
+      'Set-Cookie': `admin_session=${STATIC_SESSION_ID}; Max-Age=43200; Path=/; SameSite=Lax`
     });
   }
 
   if (req.method === 'POST' && pathname === '/api/admin/logout') {
-    const c = cookies(req);
-    if (c.admin_session) delete db.sessions[c.admin_session];
-    save();
-    return json(res, 200, { ok: true }, { 'Set-Cookie': 'admin_session=; Max-Age=0; HttpOnly; Path=/; SameSite=Strict' });
+    return json(res, 200, { ok: true }, { 'Set-Cookie': 'admin_session=; Max-Age=0; Path=/; SameSite=Lax' });
   }
   if (pathname.startsWith('/api/admin/')) {
     const s = requireAdmin(req, res);
@@ -342,7 +303,7 @@ async function api(req, res, pathname) {
     if (req.method === 'GET' && pathname === '/api/admin/me') {
       return json(res, 200, { 
         ok: true, 
-        user: { username: s.username, role: s.role, name: s.name, telegramUsername: s.telegramUsername }, 
+        user: { username: 'admin', role: 'admin', name: 'Administrator', telegramUsername: 'admin' }, 
         settings: db.settings, 
         stats: stats() 
       });
@@ -360,8 +321,6 @@ async function api(req, res, pathname) {
       const payload = JSON.stringify({ exportedAt: now(), settings: db.settings, visitors: db.visitors, events: db.events }, null, 2);
       return send(res, 200, payload, 'application/json; charset=utf-8', { 'Content-Disposition': 'attachment; filename="spongebob-analytics.json"' });
     }
-
-    if (s.role !== 'admin') return json(res, 403, { error: 'ADMIN_ONLY' });
 
     if (req.method === 'POST' && pathname === '/api/admin/settings') {
       const b = await body(req);
