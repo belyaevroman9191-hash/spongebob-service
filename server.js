@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https'); // Безопасный модуль для работы с Telegram API
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -11,12 +12,10 @@ const PORT = Number(process.env.PORT || 3000);
 const SESSION_TTL = 1000 * 60 * 60 * 12;
 const MAX_BODY = 1024 * 1024;
 
-// One shared admin login for the whole admin panel.
-// Login: admin
+// Единственный общий аккаунт для панели администратора. Логин: admin
 const ADMIN_ACCOUNT = Object.freeze({ username: 'admin', role: 'admin', name: 'Administrator' });
 
-// Fixed password requested by the project owner: SpongeBob1488.
-// Only the derived hash is stored in the application.
+// Фиксированный хэш пароля (пароль: SpongeBob1488)
 const FIXED_PASSWORD = Object.freeze({
   salt: '012914fae7069b4cba5c416d86eecd6c',
   hash: 'c1382848bc271fe908fa12bc35312ef3de83f7859832ee995fee8170a9c2f49faa459aa7895e02de448c6bf8b1da48f1e8e0fec2157adef79b1bd40c213efafc'
@@ -31,10 +30,10 @@ const defaultDb = () => ({
     siteName: 'SPONGEBOB SERVICE',
     telegramBotUsername: '',
     links: [
-      { id: '01', title: 'ГЛАВНЫЙ АДМИНИСТРАТОР', subtitle: 'Основной контакт проекта', icon: 'A', url: 'https://t.me/GSMSHEIKHO9', active: true },
-      { id: '02', title: 'СТАРШИЙ САППОРТ', subtitle: 'Поддержка и сложные вопросы', icon: 'S', url: 'https://t.me/sponge_bo888', active: true },
-      { id: '03', title: 'МЛАДШИЙ САППОРТ', subtitle: 'Помощь по общим вопросам', icon: 'C', url: 'https://t.me/SuportSpongeBob', active: true },
-      { id: '04', title: 'УСЛУГИ КОДЕРА', subtitle: 'Разработка и технические задачи', icon: '</>', url: 'https://t.me/GSMSHEIKHO9', active: true }
+      { id: '01', title: 'ГЛАВНЫЙ АДМИНИСТРАТОР', subtitle: 'Основной контакт проекта', icon: 'A', url: 'https://t.me', active: true },
+      { id: '02', title: 'СТАРШИЙ САППОРТ', subtitle: 'Поддержка и сложные вопросы', icon: 'S', url: 'https://t.me', active: true },
+      { id: '03', title: 'МЛАДШИЙ САППОРТ', subtitle: 'Помощь по общим вопросам', icon: 'C', url: 'https://t.me', active: true },
+      { id: '04', title: 'УСЛУГИ КОДЕРА', subtitle: 'Разработка и technical задачи', icon: '</>', url: 'https://t.me', active: true }
     ]
   },
   visitors: {},
@@ -49,7 +48,6 @@ try {
   save();
 }
 
-// Migrate the stored auth settings to the single shared admin login.
 if (!db.auth || db.auth.version !== 2) {
   db.auth = { version: 2, password: FIXED_PASSWORD };
   db.sessions = {};
@@ -59,7 +57,6 @@ if (!db.sessions) db.sessions = {};
 if (!db.visitors) db.visitors = {};
 if (!db.events) db.events = [];
 if (!db.settings) db.settings = defaultDb().settings;
-
 function save() { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); }
 function now() { return new Date().toISOString(); }
 function hash(s) { return crypto.createHash('sha256').update(String(s)).digest('hex'); }
@@ -163,9 +160,33 @@ function track(req, res, type, payload = {}) {
   db.events.push({ id: random(), ts: now(), visitorId: vid, type, ...payload });
   if (db.events.length > 20000) db.events.splice(0, db.events.length - 20000);
   save();
+
+  // --- НАДЁЖНЫЙ БЛОК ОТПРАВКИ В TELEGRAM (ИСПРАВЛЕННЫЙ) ---
+  const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
+  const MY_CHAT_ID = '8908951710'; // Поменяйте на личный ID, если лог не пришёл
+
+  if (payload.telegramUsername && BOT_TOKEN && MY_CHAT_ID) {
+    const safeUsername = String(payload.telegramUsername).replace(/_/g, '\\_');
+    const tgText = encodeURIComponent(
+      "🔔 *Новый переход в SpongeBob Service!*\n\n" +
+      "👤 *Пользователь:* @" + safeUsername + "\n" +
+      "🆔 *ID:* " + (payload.telegramId || 'Не указан') + "\n" +
+      "📍 *Действие:* Открытие сайта\n" +
+      "🕒 *Время:* " + new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + " МСК"
+    );
+
+    // Ссылка собрана абсолютно правильно через поддомен api. и префикс /bot
+       const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
+
+
+    https.get(tgUrl, (tgRes) => {
+      tgRes.on('data', () => {});
+    }).on('error', (e) => console.error('Ошибка Telegram HTTPS:', e.message));
+  }
+  // --------------------------------------------------------
+
   json(res, 200, { ok: true }, { 'Set-Cookie': `visitor_id=${encodeURIComponent(vid)}; Max-Age=31536000; Path=/; SameSite=Lax` });
 }
-
 function stats() {
   const ev = Array.isArray(db.events) ? db.events : [];
   const nowMs = Date.now();
@@ -306,7 +327,6 @@ async function api(req, res, pathname) {
       return send(res, 200, payload, 'application/json; charset=utf-8', { 'Content-Disposition': 'attachment; filename="spongebob-analytics.json"' });
     }
 
-    // Both allowlisted accounts have full administrator access.
     if (s.role !== 'admin') return json(res, 403, { error: 'ADMIN_ONLY' });
 
     if (req.method === 'POST' && pathname === '/api/admin/settings') {

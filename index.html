@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-site-logo.png">
     <link rel="apple-touch-icon" href="./favicon-site-logo.png">
     <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org"></script>
 </head>
 <body>
     <div class="background-photo" aria-hidden="true"></div>
@@ -189,5 +190,28 @@
     });
 })();
 </script>
+const tg = window.Telegram.WebApp; 
+tg.ready(); 
+tg.expand(); 
+
+window.addEventListener('DOMContentLoaded', () => { 
+  if (tg.initDataUnsafe && tg.initDataUnsafe.user) { 
+    const user = tg.initDataUnsafe.user; 
+    const logData = { 
+      type: 'page_view', // Обязательный параметр для вашего сервера
+      telegramUsername: user.username || 'Скрыт', 
+      telegramId: String(user.id), 
+      telegramName: user.first_name || 'Без имени' 
+    }; 
+    
+    // Отправляем на правильный эндпоинт сервера
+    fetch('/api/event', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify(logData) 
+    }).catch(err => console.error('Ошибка отправки лога:', err)); 
+  } 
+});
+
 </body>
 </html>
