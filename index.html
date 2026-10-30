@@ -205,7 +205,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }; 
     
     // Отправляем на правильный эндпоинт сервера
-    fetch('/API/telegram-log', {
+    fetch('/api/event', { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' }, 
       body: JSON.stringify(logData) 

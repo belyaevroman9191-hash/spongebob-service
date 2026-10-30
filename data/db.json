@@ -72,6 +72,18 @@
       "referrer": "http://localhost:3000/",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
       "ipHash": "eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3"
+    },
+    "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1": {
+      "id": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "firstSeen": "2026-10-30T08:39:13.718Z",
+      "lastSeen": "2026-10-30T09:38:59.195Z",
+      "visits": 23,
+      "events": 23,
+      "telegramUsername": "proverka_nika_rabotaet",
+      "telegramName": "Успешный Тест",
+      "referrer": "http://localhost:3000/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "ipHash": "eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3"
     }
   },
   "events": [
@@ -115,6 +127,225 @@
       "type": "page_view",
       "path": "/",
       "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "9f5b5341cae40dde3608df634d51edfaad18e8c111f4d4f1499d1e98aac9bdb3",
+      "ts": "2026-10-30T08:39:13.719Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "b128f2327b157bcc493a507a6bd14d25ddb3a26fc8b23cd7291c3e0534a0d04d",
+      "ts": "2026-10-30T08:43:28.060Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "мой_тестовый_ник_пользователя",
+      "telegramName": "Иван Иванов"
+    },
+    {
+      "id": "024edf8fd2bc34a155ee7885f2ba532b7ba076a4225ccff0ba1b2b2c76deae66",
+      "ts": "2026-10-30T08:47:44.656Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "мой_тестовый_ник_пользователя"
+    },
+    {
+      "id": "4914685fd75d1f6389ae49c5c2489510e09746ad5d50f623efc4743cfdf7e6e6",
+      "ts": "2026-10-30T08:49:35.641Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "70cf0efa01783d16ea46923400de5ee06502e3758541e3bfcb76cbd969914019",
+      "ts": "2026-10-30T08:49:40.020Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "мой_тестовый_ник_пользователя"
+    },
+    {
+      "id": "c44f016df12805a1e1e5f0d41fff449d9ee98127da4a4242f8e199d19913cc13",
+      "ts": "2026-10-30T08:52:35.054Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "96aeaf8548c1d2f8b58ce8e9a0d9e27a117cf43f52c5b155069f4573eaba2a03",
+      "ts": "2026-10-30T08:52:49.193Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "мой_тестовый_ник_пользователя"
+    },
+    {
+      "id": "cadb978fccf1ce3f6dcdb1fc3ae9d1cac8219b799e5f1995cb999417b3e6c646",
+      "ts": "2026-10-30T08:55:36.906Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "372d29c52370a4f33b83bcdcfd4802959b94ade195a6ad69abb46794938c8986",
+      "ts": "2026-10-30T08:55:39.575Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "мой_тестовый_ник_пользователя"
+    },
+    {
+      "id": "9915a2fd7eb9ef232ee3c56adff0fee4fbb08bdd85956b4865a8b696cd63e480",
+      "ts": "2026-10-30T08:58:13.333Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "af0dc07c80d7e7333f80935c2efbc5a64543286a622fa1b9b1edbf56b59b343f",
+      "ts": "2026-10-30T08:58:15.464Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "мой_тестовый_ник_пользователя",
+      "telegramId": "123456789"
+    },
+    {
+      "id": "a896db56e1e037869508167a720a36b64abd7703d2a2a105d36ae64ba2000960",
+      "ts": "2026-10-30T09:04:36.603Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "11db338eaa2e37c7820a5da3b420ad7608ad83ba07dfdb63928d6534fecc31c0",
+      "ts": "2026-10-30T09:04:39.095Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "успешный_тест_прошел",
+      "telegramId": "123456789",
+      "telegramName": "Тестовый Пользователь"
+    },
+    {
+      "id": "ad9792200dbb7490cf3a81c8a528596a051aab39b1a3f6510f14e95d18d3f8ef",
+      "ts": "2026-10-30T09:07:15.416Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "5e0e32d6b1f5e7fda57ae82cdfb27f4742b773f95a60333e18194453fee2d43d",
+      "ts": "2026-10-30T09:07:25.017Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "успешный_тест_прошел",
+      "telegramId": "123456789",
+      "telegramName": "Тестовый Пользователь"
+    },
+    {
+      "id": "9a0080135100624efbdbcc6960375280917386bf2843cf849cac8788f68bd7e6",
+      "ts": "2026-10-30T09:09:48.075Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "9c5536023a1ae72451a5af8d876ff6960069ddc71ba4a4f478cd2bd77b03b93a",
+      "ts": "2026-10-30T09:10:14.379Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "final_test_ok",
+      "telegramId": "123456789",
+      "telegramName": "Тестовый Пользователь"
+    },
+    {
+      "id": "ced8db610a97fd502761cfa4ade90941a48a964d3313de70aa9fc8eddf0710ea",
+      "ts": "2026-10-30T09:20:58.303Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "0d948e13554d144bcb8c218a14e70fdae75967b0ed6833a3b4adb722d2ac07be",
+      "ts": "2026-10-30T09:21:07.013Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "proverka_nika_rabotaet",
+      "telegramId": "777777777",
+      "telegramName": "Успешный Тест"
+    },
+    {
+      "id": "454cd959937af9ff5c21e03af48ea7923d53d2ddbd90a061fb441735f339c18d",
+      "ts": "2026-10-30T09:27:03.897Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "37e5710fd2b720bc49ba411108d90619ec9d84b22f5f0852935a1b3209e2448e",
+      "ts": "2026-10-30T09:27:05.720Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "proverka_nika_rabotaet",
+      "telegramId": "777777777",
+      "telegramName": "Успешный Тест"
+    },
+    {
+      "id": "d157a85a85f3d5180d71bcd60e9c2d21fa0458e7bbd56709aeec0b8eeffaab82",
+      "ts": "2026-10-30T09:38:56.712Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "source": "",
+      "device": "desktop",
+      "pageUrl": "http://localhost:3000/",
+      "path": "/",
+      "title": "SPONGEBOB SERVICE"
+    },
+    {
+      "id": "af4534a4aa40cedad59665e3b7b2e3cb4926b5407d978e277b43957cbcf4b73c",
+      "ts": "2026-10-30T09:38:59.195Z",
+      "visitorId": "e6fec0aa9766c61e03960b4bc506dc187730a5535380f1fca5ff93220ba40fe1",
+      "type": "page_view",
+      "telegramUsername": "proverka_nika_rabotaet",
+      "telegramId": "777777777",
+      "telegramName": "Успешный Тест"
     }
   ]
 }
