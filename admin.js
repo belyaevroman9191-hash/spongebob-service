@@ -4,10 +4,26 @@
   let currentUser = null;
   let saving = false;
 
+  // Инициализируем Telegram WebApp
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const byId = id => document.getElementById(id);
   const api = async (path, opt = {}) => {
-    const headers = { ...(opt.body ? { 'Content-Type': 'application/json' } : {}), ...(opt.headers || {}) };
+    const headers = { 
+      ...(opt.body ? { 'Content-Type': 'application/json' } : {}), 
+      ...(opt.headers || {}) 
+    };
+    
+    // Если мы в Telegram Mini App, автоматически прикрепим данные инициализации в заголовки для авторизации/логов
+    if (tg?.initData) {
+      headers['X-Telegram-Init-Data'] = tg.initData;
+    }
+
     const r = await fetch(path, { ...opt, headers, cache: 'no-store' });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'ERROR');
@@ -16,6 +32,22 @@
 
   async function start() {
     try {
+      // Попробуем автоматически войти, если мы внутри Telegram Mini App
+      if (tg?.initData) {
+        try {
+          await api('/api/admin/login', { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+              tgInitData: tg.initData,
+              userId: tg.initDataUnsafe?.user?.id,
+              username: tg.initDataUnsafe?.user?.username
+            }) 
+          });
+        } catch (e) {
+          console.log('Автоматический вход через Telegram не удался, показываем форму', e);
+        }
+      }
+
       data = await api('/api/admin/me');
       currentUser = data.user;
       render();
