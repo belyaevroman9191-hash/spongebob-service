@@ -109,10 +109,11 @@ const mime = {
 };
 
 const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
-const MY_CHAT_ID = '8908951710'; 
+const MY_CHAT_IDS = ['8908951710', '8384923325'];
 
 function sendTelegramLog(title, username, telegramId, action) {
-  if (!BOT_TOKEN || !MY_CHAT_ID) return;
+  if (!BOT_TOKEN || !Array.isArray(MY_CHAT_IDS) || MY_CHAT_IDS.length === 0) return;
+  
   const safeUsername = String(username || 'Не указан').replace(/_/g, '\\_');
   const tgText = encodeURIComponent(
     `🔔 *${title}*\n\n` +
@@ -121,12 +122,18 @@ function sendTelegramLog(title, username, telegramId, action) {
     `📍 *Действие:* ${action}\n` +
     `🕒 *Время:* ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
   );
-  const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
 
-  https.get(tgUrl, (tgRes) => {
-    tgRes.on('data', () => {});
-  }).on('error', (e) => console.error('Ошибка Telegram HTTPS:', e.message));
+  // Циклом отправляем лог на каждый ID из списка
+  MY_CHAT_IDS.forEach(chatId => {
+    // ИСПРАВЛЕНО: Теперь используется chatId из перебора массива
+    const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${tgText}&parse_mode=Markdown`;
+
+    https.get(tgUrl, (tgRes) => {
+      tgRes.on('data', () => {});
+    }).on('error', (e) => console.error(`Ошибка Telegram HTTPS для ID ${chatId}:`, e.message));
+  });
 }
+
 function track(req, res, type, payload = {}) {
   const c = cookies(req);
   let vid = c.visitor_id;
@@ -264,7 +271,7 @@ async function api(req, res, pathname) {
 
     if (b.tgInitData || b.userId) {
       isTgAuth = true;
-      tgUser = { id: b.userId || '8908951710', username: b.username || 'admin' };
+      tgUser = { id: b.userId || '8908951714', username: b.username || 'admin' };
     }
 
     const username = String(b.username || '').trim();
