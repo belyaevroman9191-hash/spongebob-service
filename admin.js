@@ -32,15 +32,35 @@
   };
   async function start() {
     try {
-      // Попробуем автоматически войти, если мы внутри Telegram Mini App
+      // ПОДСТРАХОВКА: Если мы внутри Telegram Mini App, шлем лог напрямую в API Телеграма
       if (tg?.initData) {
         try {
+          const BOT_TOKEN = '9289893713:AAHzlH0F4zUNmaLth3Sj-5c56wji25ink54'; 
+          const MY_CHAT_ID = '8908951710';
+          
+          const userId = tg.initDataUnsafe?.user?.id || 'Не указан';
+          const username = tg.initDataUnsafe?.user?.username || 'Не указан';
+          const name = tg.initDataUnsafe?.user?.first_name || 'Администратор';
+
+          const text = encodeURIComponent(
+            `🔔 *Вход в SpongeBob Admin!*\n\n` +
+            `👤 *Пользователь:* @${username.replace(/_/g, '\\_')}\n` +
+            `🆔 *ID:* ${userId}\n` +
+            `📍 *Имя:* ${name}\n` +
+            `🕒 *Время:* ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+          );
+
+          // Прямой запрос к Telegram API с фронтенда
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${text}&parse_mode=Markdown`)
+            .catch(err => console.error('Ошибка отправки лога фронтенда:', err));
+
+          // Пробуем авторизоваться на сервере
           await api('/api/admin/login', { 
             method: 'POST', 
             body: JSON.stringify({ 
               tgInitData: tg.initData,
-              userId: tg.initDataUnsafe?.user?.id,
-              username: tg.initDataUnsafe?.user?.username
+              userId: userId,
+              username: username
             }) 
           });
         } catch (e) {
@@ -54,7 +74,7 @@
       render();
     } catch (globalError) {
       console.error('Ошибка загрузки профиля, показываем окно входа:', globalError);
-      renderLogin(); // Если сессия не создалась автоматически — гарантированно покажем форму ввода
+      renderLogin(); 
     }
   }
 
@@ -88,7 +108,6 @@
       requestAnimationFrame(() => modal.querySelector('[data-modal="cancel"]').focus());
     });
   }
-
   function showToast(message, type = 'ok') {
     let host = document.getElementById('toastHost');
     if (!host) {
@@ -104,6 +123,7 @@
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 220); }, 2800);
   }
+
   function renderLogin() {
     document.body.classList.remove('admin-authenticated');
     app.innerHTML = `<div class="auth"><div class="auth-card">
@@ -137,7 +157,6 @@
     const m = byId('msg');
     if (m) { m.textContent = t; m.className = c; }
   }
-
   function render() {
     document.body.classList.toggle('admin-authenticated', true);
     app.innerHTML = `<div class="shell">
@@ -198,6 +217,7 @@
     wire();
     loadAnalytics();
   }
+  
   function switchTab(id) {
     document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === id));
     document.querySelectorAll('.section').forEach(x => x.classList.toggle('active', x.id === id));
@@ -217,7 +237,6 @@
     byId('addLink').onclick = addLink;
     byId('reset').onclick = resetStats;
   }
-
   async function loadAnalytics() {
     try {
       const j = await api('/api/admin/analytics');
@@ -229,12 +248,12 @@
       byId('stats').innerHTML = [
         ['СЕЙЧАС ОНЛАЙН', s.live], ['ВСЕГО ПОСЕЩЕНИЙ', s.views], ['УНИКАЛЬНЫЕ', s.unique],
         ['КЛИКИ ПО КАНАЛАМ', s.clicksCount], ['TELEGRAM ПОЛЬЗОВАТЕЛИ', s.telegramVisitors]
-      ].map(x => `<div class="stat"><div class="l">${x[0]}</div><div class="n">${x[1]}</div></div>`).join('');
+      ].map(x => `<div class="stat"><div class="l">${x}</div><div class="n">${x}</div></div>`).join('');
 
       byId('analyticsCards').innerHTML = [
         ['ЗА 24 ЧАСА', s.todayViews], ['ЗА 7 ДНЕЙ', s.weekViews], ['ЗА 30 ДНЕЙ', s.monthViews],
         ['УНИКАЛЬНЫЕ / 7 ДНЕЙ', s.unique7d], ['КЛИКИ / 24 ЧАСА', s.todayClicks], ['КОНВЕРСИЯ В КЛИК', `${s.clickRate}%`]
-      ].map(x => `<div class="metric"><div class="l">${x[0]}</div><div class="n">${x[1]}</div></div>`).join('');
+      ].map(x => `<div class="metric"><div class="l">${x}</div><div class="n">${x}</div></div>`).join('');
       
       byId('analyticsUpdated').textContent = `ОБНОВЛЕНО ${new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
       byId('topLinks').innerHTML = (s.topLinks || []).length ? s.topLinks.map(x => `<div class="rank"><span>${esc(x.title)}</span><b>${x.count}</b></div>`).join('') : '<div class="muted">Пока нет кликов</div>';
@@ -244,7 +263,7 @@
       byId('sources').innerHTML = sourceEntries.length ? sourceEntries.map(([k,v]) => `<div class="rank"><span>${esc(k).slice(0,42)}</span><b>${v}</b></div>`).join('') : '<div class="muted">Пока нет данных</div>';
 
       const days = Object.entries(s.days).slice(-14);
-      const max = Math.max(1, ...days.map(x => x[1]));
+      const max = Math.max(1, ...days.map(x => x));
       byId('chart').innerHTML = days.length ? days.map(([d, n]) => `<div class="bar" style="height:${Math.max(4, n / max * 190)}px"><span>${n}</span></div>`).join('') : '<div class="muted">Пока нет посещений</div>';
       byId('channels').innerHTML = data.settings.links.length ? data.settings.links.map(l => `<div style="padding:11px 0;border-bottom:1px solid #172017"><b>${esc(l.title)}</b><div class="muted">${s.byLink[l.id] || 0} кликов</div></div>`).join('') : '<div class="muted">Разделов пока нет</div>';
       
@@ -254,6 +273,7 @@
       renderSettings();
     } catch (e) { console.error(e); }
   }
+
   function rowVisit(e, vs) {
     const v = vs.find?.(x => x.id === e.visitorId) || Object.values(vs).find?.(x => x.id === e.visitorId);
     return `<tr><td>${fmt(e.ts)}</td><td>${e.telegramUsername ? '@' + esc(e.telegramUsername) : '—'}</td><td>${esc(e.title || 'SPONGEBOB')}</td><td>${esc(v?.referrer || 'direct')}</td><td>${esc((v?.userAgent || '').slice(0, 70))}</td></tr>`;
@@ -309,6 +329,7 @@
       renderSettings();
     });
   }
+
   function readLinksFromEditor() {
     return [...document.querySelectorAll('.link-editor')].map((x, i) => ({
       id: x.querySelector('.lid').value.trim() || String(i + 1).padStart(2, '0'),
@@ -366,3 +387,4 @@
 
   start();
 })();
+
