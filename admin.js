@@ -44,15 +44,17 @@
             }) 
           });
         } catch (e) {
-          console.log('Автоматический вход через Telegram не удался, показываем форму', e);
+          console.log('Автоматический вход через Telegram не удался, переходим к форме', e);
         }
       }
 
+      // Загружаем данные пользователя
       data = await api('/api/admin/me');
       currentUser = data.user;
       render();
-    } catch {
-      renderLogin();
+    } catch (globalError) {
+      console.error('Ошибка загрузки профиля, показываем окно входа:', globalError);
+      renderLogin(); // Если сессия не создалась автоматически — гарантированно покажем форму ввода
     }
   }
 
