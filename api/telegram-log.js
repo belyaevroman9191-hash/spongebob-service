@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       `📍 *Детали:* ${details || 'Нет дополнительных данных'}\n` +
       `🕒 *Время:* ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`;
 
-    const tgUrl = `https://API.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
+    const tgUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${tgText}&parse_mode=Markdown`;
 
     http.get(tgUrl, (tgRes) => {
       let data = '';
